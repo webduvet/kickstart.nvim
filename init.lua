@@ -38,8 +38,15 @@ P.S. You can delete this when you're done too. It's your config now :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = ','
+vim.g.maplocalleader = ','
+
+vim.keymap.set('n', 'J', '<c-d>')
+vim.keymap.set('n', 'K', '<c-u>')
+
+vim.keymap.set('n', '<leader>n', ':Neotree toggle<cr>')
+vim.keymap.set('n', '<leader>q', ':bw<cr>')
+vim.keymap.set('n', '<leader>b', ':Neotree buffers<cr>')
 
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
@@ -510,6 +517,11 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
+
+vim.keymap.set('n', '<C-J>', '<C-W><C-J>')
+vim.keymap.set('n', '<C-K>', '<C-W><C-K>')
+vim.keymap.set('n', '<C-L>', '<C-W><C-L>')
+vim.keymap.set('n', '<C-H>', '<C-W><C-H>')
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
