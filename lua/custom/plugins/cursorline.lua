@@ -9,7 +9,7 @@ return {
       },
       cursorword = {
         enable = true,
-        min_length = 3,
+        min_length = 5,
         hl = { underline = true },
       }
     }
