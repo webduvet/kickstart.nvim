@@ -13,23 +13,46 @@ return {
   },
   config = function ()
     require('neo-tree').setup {
+      -- NOTE: this is the actual place for filesystem-source options
+      -- (follow_current_file, filtered_items, etc.) - `follow_current_file`
+      -- was previously nested under `default_component_configs.filesystem`,
+      -- which isn't a real config path, so it silently did nothing.
+      filesystem = {
+        follow_current_file = { enabled = true },
+        filtered_items = {
+          -- Show everything directly in the tree instead of collapsing
+          -- items behind a "(N hidden items)" placeholder line.
+          hide_dotfiles = false,
+          hide_gitignored = false,
+          hide_ignored = false,
+          hide_hidden = false, -- only affects Windows
+        },
+      },
       default_component_configs = {
-        filesystem = {
-          follow_current_file = true
+        -- Classic NERDTree-style plain tree: no per-filetype icons (avoids
+        -- depending on Nerd Font glyph coverage entirely), simple +/-
+        -- folder markers instead of the nerd-font folder glyphs.
+        icon = {
+          folder_closed = "+",
+          folder_open = "-",
+          folder_empty = "+",
+          folder_empty_open = "-",
+          default = "",
+          provider = function() end, -- skip the nvim-web-devicons lookup
         },
         git_status = {
           symbols = {
             -- Change type
-            added     = "✚", -- NOTE: you can set any of these to an empty string to not show them
-            deleted   = "✖",
-            modified  = "",
-            renamed   = "r",
+            added     = "A",
+            deleted   = "D",
+            modified  = "M",
+            renamed   = "R",
             -- Status type
             untracked = "?",
-            ignored   = "i",
-            unstaged  = "u",
-            staged    = "",
-            conflict  = "E",
+            ignored   = "!",
+            unstaged  = "U",
+            staged    = "S",
+            conflict  = "C",
           },
           align = "right",
         },
