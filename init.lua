@@ -44,9 +44,9 @@ vim.g.maplocalleader = ','
 vim.keymap.set('n', 'J', '<c-d>')
 vim.keymap.set('n', 'K', '<c-u>')
 
-vim.keymap.set('n', '<leader>n', ':Neotree toggle<cr>')
-vim.keymap.set('n', '<leader>q', ':bw<cr>')
-vim.keymap.set('n', '<leader>b', ':Neotree buffers<cr>')
+vim.keymap.set('n', '<leader>n', ':Neotree toggle<cr>', { desc = 'Toggle file [N]eo-tree' })
+-- <leader>b/<leader>g/<leader>f are which-key groups set up further down,
+-- once telescope/gitsigns/which-key are configured.
 
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
@@ -109,9 +109,19 @@ require('lazy').setup({
       'rafamadriz/friendly-snippets',
     },
     opts = {
-      keymap = { preset = 'default' },
+      keymap = {
+        preset = 'default',
+        -- match the <C-j>/<C-k> selection style used in Telescope
+        ['<C-j>'] = { 'select_next', 'fallback' },
+        ['<C-k>'] = { 'select_prev', 'fallback' },
+        -- accept the highlighted suggestion with Tab; falls through to
+        -- snippet-jump / a literal tab when no completion menu is open
+        ['<Tab>'] = { 'select_and_accept', 'snippet_forward', 'fallback' },
+      },
       appearance = { nerd_font_variant = 'mono' },
       completion = { documentation = { auto_show = false } },
+      -- auto-popup parameter hints while typing inside a function call
+      signature = { enabled = true },
       sources = { default = { 'lsp', 'path', 'snippets', 'buffer' } },
       fuzzy = { implementation = 'prefer_rust_with_warning' },
     },
@@ -133,9 +143,12 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
       on_attach = function(bufnr)
-        vim.keymap.set('n', '[c', require('gitsigns').prev_hunk, { buffer = bufnr, desc = 'Go to Previous Hunk' })
-        vim.keymap.set('n', ']c', require('gitsigns').next_hunk, { buffer = bufnr, desc = 'Go to Next Hunk' })
-        vim.keymap.set('n', '<leader>ph', require('gitsigns').preview_hunk, { buffer = bufnr, desc = '[P]review [H]unk' })
+        local gs = require 'gitsigns'
+        vim.keymap.set('n', '[c', function() gs.nav_hunk 'prev' end, { buffer = bufnr, desc = 'Go to Previous Hunk' })
+        vim.keymap.set('n', ']c', function() gs.nav_hunk 'next' end, { buffer = bufnr, desc = 'Go to Next Hunk' })
+        vim.keymap.set('n', '<leader>gh', gs.preview_hunk, { buffer = bufnr, desc = '[H]unk preview' })
+        vim.keymap.set('n', '<leader>gb', gs.blame_line, { buffer = bufnr, desc = '[B]lame line' })
+        vim.keymap.set('n', '<leader>gd', gs.diffthis, { buffer = bufnr, desc = '[D]iff against index' })
       end,
     },
   },
@@ -172,7 +185,10 @@ require('lazy').setup({
   { 'numToStr/Comment.nvim', opts = {} },
 
   -- Fuzzy Finder (files, lsp, etc)
-  { 'nvim-telescope/telescope.nvim', branch = '0.1.x', dependencies = { 'nvim-lua/plenary.nvim' } },
+  -- NOTE: '0.1.x' is the old release branch and is no longer maintained
+  -- (https://github.com/nvim-telescope/telescope.nvim/issues/3487); 'master'
+  -- is the actively developed branch despite what telescope's README says.
+  { 'nvim-telescope/telescope.nvim', branch = 'master', dependencies = { 'nvim-lua/plenary.nvim' } },
 
   -- Fuzzy Finder Algorithm which requires local dependencies to be built.
   -- Only load if `make` is available. Make sure you have the system
@@ -189,11 +205,16 @@ require('lazy').setup({
 
   {
     -- Highlight, edit, and navigate code
+    -- NOTE: 'master' is no longer maintained upstream; 'main' is the
+    -- actively developed branch (different config API, see setup below).
     'nvim-treesitter/nvim-treesitter',
-    dependencies = {
-      'nvim-treesitter/nvim-treesitter-textobjects',
-    },
+    branch = 'main',
     build = ':TSUpdate',
+  },
+  {
+    'nvim-treesitter/nvim-treesitter-textobjects',
+    branch = 'main',
+    dependencies = { 'nvim-treesitter/nvim-treesitter' },
   },
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
@@ -275,12 +296,15 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 
 -- [[ Configure Telescope ]]
 -- See `:help telescope` and `:help telescope.setup()`
+local telescope_actions = require 'telescope.actions'
 require('telescope').setup {
   defaults = {
     mappings = {
       i = {
         ['<C-u>'] = false,
         ['<C-d>'] = false,
+        ['<C-j>'] = telescope_actions.move_selection_next,
+        ['<C-k>'] = telescope_actions.move_selection_previous,
       },
     },
   },
@@ -292,96 +316,104 @@ require('telescope').setup {
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 
+-- [[ <leader>f : Find (Telescope) ]]
 -- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').buffers, { desc = '[ ] Find existing buffers' })
-vim.keymap.set('n', '<leader>/', function()
+local builtin = require 'telescope.builtin'
+vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Find Files' })
+vim.keymap.set('n', '<leader>fg', builtin.live_grep, { desc = 'Live Grep' })
+vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Buffers' })
+vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Help Tags' })
+vim.keymap.set('n', '<leader>fr', builtin.oldfiles, { desc = 'Recent Files' })
+vim.keymap.set('n', '<leader>fw', builtin.grep_string, { desc = 'Word Under Cursor' })
+vim.keymap.set('n', '<leader>fd', builtin.diagnostics, { desc = 'Diagnostics' })
+vim.keymap.set('n', '<leader>f/', function()
   -- You can pass additional configuration to telescope to change theme, layout, etc.
-  require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+  builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
     winblend = 10,
     previewer = false,
   })
-end, { desc = '[/] Fuzzily search in current buffer' })
+end, { desc = 'Fuzzily Search In Buffer' })
 
-vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
-vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
-vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
+-- [[ <leader>g : Git ]]
+vim.keymap.set('n', '<leader>gs', ':Git<cr>', { desc = '[S]tatus (Fugitive)' })
+vim.keymap.set('n', '<leader>gf', builtin.git_files, { desc = 'Git [F]iles' })
+-- gb/gd/gh (blame/diff/hunk-preview) are buffer-local, set up in gitsigns' on_attach above
 
--- [[ Configure Treesitter ]]
--- See `:help nvim-treesitter`
-require('nvim-treesitter.configs').setup {
-  -- Add languages to be installed here that you want installed for treesitter
-  ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim' },
+-- [[ <leader>b : Buffer ]]
+vim.keymap.set('n', '<leader>bb', ':Neotree buffers<cr>', { desc = 'Pick [B]uffer (Neo-tree)' })
+vim.keymap.set('n', '<leader>bn', ':bnext<cr>', { desc = '[N]ext buffer' })
+vim.keymap.set('n', '<leader>bp', ':bprevious<cr>', { desc = '[P]revious buffer' })
+vim.keymap.set('n', '<leader>bd', ':bdelete<cr>', { desc = '[D]elete buffer' })
 
-  -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-  auto_install = false,
-
-  highlight = { enable = true },
-  indent = { enable = true, disable = { 'python' } },
-  incremental_selection = {
-    enable = true,
-    keymaps = {
-      init_selection = '<c-space>',
-      node_incremental = '<c-space>',
-      scope_incremental = '<c-s>',
-      node_decremental = '<M-space>',
-    },
-  },
-  textobjects = {
-    select = {
-      enable = true,
-      lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-      keymaps = {
-        -- You can use the capture groups defined in textobjects.scm
-        ['aa'] = '@parameter.outer',
-        ['ia'] = '@parameter.inner',
-        ['af'] = '@function.outer',
-        ['if'] = '@function.inner',
-        ['ac'] = '@class.outer',
-        ['ic'] = '@class.inner',
-      },
-    },
-    move = {
-      enable = true,
-      set_jumps = true, -- whether to set jumps in the jumplist
-      goto_next_start = {
-        [']m'] = '@function.outer',
-        [']]'] = '@class.outer',
-      },
-      goto_next_end = {
-        [']M'] = '@function.outer',
-        [']['] = '@class.outer',
-      },
-      goto_previous_start = {
-        ['[m'] = '@function.outer',
-        ['[['] = '@class.outer',
-      },
-      goto_previous_end = {
-        ['[M'] = '@function.outer',
-        ['[]'] = '@class.outer',
-      },
-    },
-    swap = {
-      enable = true,
-      swap_next = {
-        ['<leader>a'] = '@parameter.inner',
-      },
-      swap_previous = {
-        ['<leader>A'] = '@parameter.inner',
-      },
-    },
-  },
+-- Label the leader groups so which-key's popup shows names instead of raw keys
+require('which-key').add {
+  { '<leader>f', group = 'Find' },
+  { '<leader>g', group = 'Git' },
+  { '<leader>b', group = 'Buffer' },
+  { '<leader>l', group = 'LSP' },
 }
 
--- Diagnostic keymaps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
+-- [[ Configure Treesitter ]]
+-- See `:help nvim-treesitter`. The 'master' branch is unmaintained upstream
+-- (https://github.com/nvim-treesitter/nvim-treesitter-textobjects/issues/876)
+-- so this is on 'main', which has a very different, less monolithic API:
+-- no more `.configs.setup{ ensure_installed, highlight, indent, ... }`.
+--
+-- NOTE: the old `incremental_selection` module (<c-space> to expand
+-- selection, <M-space> to shrink, <c-s> for scope) was dropped upstream in
+-- this rewrite with no direct replacement; it's simply gone for now.
+local ts_langs = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'typescript', 'vimdoc', 'vim' }
+require('nvim-treesitter').install(ts_langs)
 
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = ts_langs,
+  callback = function(args)
+    -- Highlighting/indent used to come from `.configs.setup()`; now enabled
+    -- per-filetype instead. Treesitter indent for Python was excluded
+    -- before too (its indentation is historically unreliable).
+    pcall(vim.treesitter.start)
+    if args.match ~= 'python' then
+      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
+  end,
+})
+
+require('nvim-treesitter-textobjects').setup {
+  select = {
+    lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
+    selection_modes = {
+      ['@parameter.outer'] = 'v',
+      ['@function.outer'] = 'V',
+      ['@class.outer'] = 'V',
+    },
+  },
+  move = { set_jumps = true },
+}
+
+-- You can use the capture groups defined in textobjects.scm
+local ts_select = require 'nvim-treesitter-textobjects.select'
+vim.keymap.set({ 'x', 'o' }, 'aa', function() ts_select.select_textobject('@parameter.outer', 'textobjects') end)
+vim.keymap.set({ 'x', 'o' }, 'ia', function() ts_select.select_textobject('@parameter.inner', 'textobjects') end)
+vim.keymap.set({ 'x', 'o' }, 'af', function() ts_select.select_textobject('@function.outer', 'textobjects') end)
+vim.keymap.set({ 'x', 'o' }, 'if', function() ts_select.select_textobject('@function.inner', 'textobjects') end)
+vim.keymap.set({ 'x', 'o' }, 'ac', function() ts_select.select_textobject('@class.outer', 'textobjects') end)
+vim.keymap.set({ 'x', 'o' }, 'ic', function() ts_select.select_textobject('@class.inner', 'textobjects') end)
+
+local ts_move = require 'nvim-treesitter-textobjects.move'
+vim.keymap.set({ 'n', 'x', 'o' }, ']m', function() ts_move.goto_next_start('@function.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, ']]', function() ts_move.goto_next_start('@class.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, ']M', function() ts_move.goto_next_end('@function.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, '][', function() ts_move.goto_next_end('@class.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, '[m', function() ts_move.goto_previous_start('@function.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, '[[', function() ts_move.goto_previous_start('@class.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, '[M', function() ts_move.goto_previous_end('@function.outer', 'textobjects') end)
+vim.keymap.set({ 'n', 'x', 'o' }, '[]', function() ts_move.goto_previous_end('@class.outer', 'textobjects') end)
+
+-- (parameter swap dropped: unused; <leader>a is now hover docs, see LspAttach below)
+
+-- Diagnostic keymaps
+vim.keymap.set('n', '[d', function() vim.diagnostic.jump { count = -1, float = true } end, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', ']d', function() vim.diagnostic.jump { count = 1, float = true } end, { desc = 'Go to next diagnostic message' })
 -- [[ Configure LSP ]]
 --  This autocommand runs when an LSP attaches to a particular buffer.
 vim.api.nvim_create_autocmd('LspAttach', {
@@ -395,19 +427,20 @@ vim.api.nvim_create_autocmd('LspAttach', {
       vim.keymap.set('n', keys, func, { buffer = event.buf, desc = desc })
     end
 
-    nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
-    nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+    -- [[ <leader>l : LSP ]]
+    nmap('<leader>lh', vim.lsp.buf.hover, 'Hover Documentation')
+    nmap('<leader>ls', vim.lsp.buf.signature_help, 'Signature Help')
+    nmap('<leader>lr', vim.lsp.buf.rename, 'Rename')
+    nmap('<leader>la', vim.lsp.buf.code_action, 'Code Action')
+    nmap('<leader>lt', vim.lsp.buf.type_definition, 'Type Definition')
+    nmap('<leader>ld', require('telescope.builtin').lsp_document_symbols, 'Document Symbols')
+    nmap('<leader>lw', require('telescope.builtin').lsp_dynamic_workspace_symbols, 'Workspace Symbols')
+    nmap('<leader>le', vim.diagnostic.open_float, 'Diagnostics (float)')
+    nmap('<leader>lq', vim.diagnostic.setloclist, 'Diagnostics (list)')
 
     nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
     nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
     nmap('gI', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
-    nmap('<leader>D', vim.lsp.buf.type_definition, 'Type [D]efinition')
-    nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-    nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-    -- See `:help K` for why this keymap
-    nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-    nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
 
     -- Lesser used LSP functionality
     nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -431,10 +464,10 @@ vim.api.nvim_create_autocmd('LspAttach', {
 --  `vim.lsp.config()`. You must look up that documentation yourself.
 local servers = {
   -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
   -- rust_analyzer = {},
-  -- ts_ls = {},
+  gopls = {},
+  pyright = {},
+  ts_ls = {},
 
   lua_ls = {
     settings = {
