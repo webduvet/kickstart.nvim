@@ -429,6 +429,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
     -- [[ <leader>l : LSP ]]
     nmap('<leader>lh', vim.lsp.buf.hover, 'Hover Documentation')
+    nmap('<leader>lv', '<cmd>DocsViewToggle<cr>', 'Toggle Docs View (side panel)')
     nmap('<leader>ls', vim.lsp.buf.signature_help, 'Signature Help')
     nmap('<leader>lr', vim.lsp.buf.rename, 'Rename')
     nmap('<leader>la', vim.lsp.buf.code_action, 'Code Action')
