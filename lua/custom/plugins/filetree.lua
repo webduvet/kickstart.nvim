@@ -48,25 +48,9 @@ end
 -- already neo-tree" by substituting that buffer's *original* stored
 -- position instead - which would route this right back to the old
 -- window. A plain scratch buffer avoids that special case.
---
--- Once the window is established, its state's `current_position` is
--- permanently downgraded from "current" to "left". `"current"` isn't just
--- a one-time targeting hint - utils.open_file and other parts of neo-tree
--- check it on every subsequent action (including ones that complete
--- *asynchronously*, like a directory scan), and "current" tells them
--- "whatever window the user happens to be in right now is fair game",
--- which crashes or misbehaves once that's no longer the window that was
--- true for. A transient swap-and-restore around a single call (an earlier
--- version of this file tried that for the filesystem <cr> override) isn't
--- enough, since the async work can finish after the restore already ran.
 local function render_neotree_source_in_current_win(source_name)
   vim.api.nvim_win_set_buf(0, vim.api.nvim_create_buf(false, true))
-  local win = vim.api.nvim_get_current_win()
   require('neo-tree.command').execute { action = 'show', source = source_name, position = 'current' }
-  local state = require('neo-tree.sources.manager').get_state_for_window(win)
-  if state then
-    state.current_position = 'left'
-  end
 end
 
 ---@param source_name string
