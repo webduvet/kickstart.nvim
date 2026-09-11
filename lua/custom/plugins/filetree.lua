@@ -176,6 +176,34 @@ return {
           hide_ignored = false,
           hide_hidden = false, -- only affects Windows
         },
+        commands = {
+          -- neo-tree's file-open logic (utils.open_file) has a hard-coded
+          -- special case: when state.current_position == "current" it
+          -- skips window-picking entirely and opens the file right there
+          -- - fine for one-off transient uses of position="current", but
+          -- wrong for us, since we also use "current" to target a
+          -- specific split when this tree is *stacked* with the buffer
+          -- picker (see open_neotree_filesystem_stacked above). That made
+          -- files open inside the tree itself instead of the editor.
+          -- Presenting a different position value just for the duration
+          -- of the open call makes it take the normal (correct,
+          -- window-cycling) path instead, without losing any of
+          -- open_file's other handling (events, relative paths, etc.).
+          open_in_editor = function(state)
+            local original_position = state.current_position
+            state.current_position = 'left'
+            local ok, err = pcall(require('neo-tree.sources.common.commands').open, state)
+            state.current_position = original_position
+            if not ok then
+              error(err)
+            end
+          end,
+        },
+        window = {
+          mappings = {
+            ['<cr>'] = 'open_in_editor',
+          },
+        },
       },
       -- Picking a buffer should open it and dismiss the picker in one step,
       -- rather than leaving the picker open (only affects the buffers
