@@ -3,10 +3,10 @@ return {
   'yamatsum/nvim-cursorline',
   config = function ()
     require('nvim-cursorline').setup {
+      -- The line highlight itself is handled by native 'cursorline' (see
+      -- init.lua) so it's always on, not just after an idle timeout.
       cursorline = {
-        enable = true,
-        timeout = 1000,
-        number = false,
+        enable = false,
       },
       cursorword = {
         enable = true,

@@ -44,9 +44,9 @@ vim.g.maplocalleader = ','
 vim.keymap.set('n', 'J', '<c-d>')
 vim.keymap.set('n', 'K', '<c-u>')
 
-vim.keymap.set('n', '<leader>n', ':Neotree toggle<cr>', { desc = 'Toggle file [N]eo-tree' })
--- <leader>b/<leader>g/<leader>f are which-key groups set up further down,
--- once telescope/gitsigns/which-key are configured.
+-- <leader>n/<leader>b (Neo-tree tree/buffer-picker), <leader>B/<leader>g/
+-- <leader>f/<leader>l which-key groups: all set up further down, once
+-- telescope/gitsigns/which-key are configured.
 
 -- Install package manager
 --    https://github.com/folke/lazy.nvim
@@ -262,6 +262,10 @@ vim.o.smartcase = true
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
 
+-- Always highlight the current line (no fade-in/out on idle, unlike
+-- nvim-cursorline's own line-highlight feature, which is disabled)
+vim.o.cursorline = true
+
 -- Decrease update time
 vim.o.updatetime = 250
 vim.o.timeout = true
@@ -339,17 +343,24 @@ vim.keymap.set('n', '<leader>gs', ':Git<cr>', { desc = '[S]tatus (Fugitive)' })
 vim.keymap.set('n', '<leader>gf', builtin.git_files, { desc = 'Git [F]iles' })
 -- gb/gd/gh (blame/diff/hunk-preview) are buffer-local, set up in gitsigns' on_attach above
 
--- [[ <leader>b : Buffer ]]
-vim.keymap.set('n', '<leader>bb', ':Neotree buffers<cr>', { desc = 'Pick [B]uffer (Neo-tree)' })
-vim.keymap.set('n', '<leader>bn', ':bnext<cr>', { desc = '[N]ext buffer' })
-vim.keymap.set('n', '<leader>bp', ':bprevious<cr>', { desc = '[P]revious buffer' })
-vim.keymap.set('n', '<leader>bd', ':bdelete<cr>', { desc = '[D]elete buffer' })
+-- <leader>n / <leader>b (Neo-tree filesystem tree / buffer picker, as two
+-- independent stacked-left-column windows, with live buffer preview) are
+-- defined in lua/custom/plugins/filetree.lua, alongside the rest of the
+-- Neo-tree setup they depend on. <leader>Bb below is the same as <leader>b.
+
+-- [[ <leader>B : Buffer ]]
+vim.keymap.set('n', '<leader>Bn', ':bnext<cr>', { desc = '[N]ext buffer' })
+vim.keymap.set('n', '<leader>Bp', ':bprevious<cr>', { desc = '[P]revious buffer' })
+vim.keymap.set('n', '<leader>Bd', ':bdelete<cr>', { desc = '[D]elete buffer' })
+
+-- Quick standalone close, same action as <leader>Bd.
+vim.keymap.set('n', '<leader>q', ':bdelete<cr>', { desc = 'Close buffer' })
 
 -- Label the leader groups so which-key's popup shows names instead of raw keys
 require('which-key').add {
   { '<leader>f', group = 'Find' },
   { '<leader>g', group = 'Git' },
-  { '<leader>b', group = 'Buffer' },
+  { '<leader>B', group = 'Buffer' },
   { '<leader>l', group = 'LSP' },
 }
 
