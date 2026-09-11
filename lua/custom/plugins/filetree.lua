@@ -48,9 +48,25 @@ end
 -- already neo-tree" by substituting that buffer's *original* stored
 -- position instead - which would route this right back to the old
 -- window. A plain scratch buffer avoids that special case.
+--
+-- Once the window is established, its state's `current_position` is
+-- permanently downgraded from "current" to "left". `"current"` isn't just
+-- a one-time targeting hint - utils.open_file and other parts of neo-tree
+-- check it on every subsequent action (including ones that complete
+-- *asynchronously*, like a directory scan), and "current" tells them
+-- "whatever window the user happens to be in right now is fair game",
+-- which crashes or misbehaves once that's no longer the window that was
+-- true for. A transient swap-and-restore around a single call (an earlier
+-- version of this file tried that for the filesystem <cr> override) isn't
+-- enough, since the async work can finish after the restore already ran.
 local function render_neotree_source_in_current_win(source_name)
   vim.api.nvim_win_set_buf(0, vim.api.nvim_create_buf(false, true))
+  local win = vim.api.nvim_get_current_win()
   require('neo-tree.command').execute { action = 'show', source = source_name, position = 'current' }
+  local state = require('neo-tree.sources.manager').get_state_for_window(win)
+  if state then
+    state.current_position = 'left'
+  end
 end
 
 ---@param source_name string
@@ -189,20 +205,17 @@ return {
           -- of the open call makes it take the normal (correct,
           -- window-cycling) path instead, without losing any of
           -- open_file's other handling (events, relative paths, etc.).
-          open_in_editor = function(state)
-            local original_position = state.current_position
-            state.current_position = 'left'
-            -- filesystem.commands.open (not common.commands.open) is what
-            -- actually supplies the toggle_directory callback that scans
-            -- and expands directories; calling the generic common version
-            -- directly (as an earlier version of this override did) broke
-            -- directory expansion entirely.
-            local ok, err = pcall(require('neo-tree.sources.filesystem.commands').open, state)
-            state.current_position = original_position
-            if not ok then
-              error(err)
-            end
-          end,
+          -- filesystem.commands.open (not common.commands.open) is what
+          -- actually supplies the toggle_directory callback that scans
+          -- and expands directories; calling the generic common version
+          -- directly (as an earlier version of this override did) broke
+          -- directory expansion entirely. This works correctly with the
+          -- tree stacked next to the buffer picker because
+          -- render_neotree_source_in_current_win already permanently
+          -- downgrades state.current_position away from "current" as
+          -- soon as that window is created - not something this command
+          -- needs to account for itself.
+          open_in_editor = require('neo-tree.sources.filesystem.commands').open,
         },
         window = {
           mappings = {
