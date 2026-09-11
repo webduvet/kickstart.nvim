@@ -1,7 +1,7 @@
 return { 'akinsho/bufferline.nvim',
 	version = "*",
 	dependencies = 'nvim-tree/nvim-web-devicons',
-	options = {
+	opts = { options = {
 		mode = "buffers", -- set to "tabs" to only show tabpages instead
 		-- style_preset = bufferline.style_preset.default, -- or bufferline.style_preset.minimal,
 		themable = false, -- allows highlight groups to be overriden i.e. sets highlights as default
@@ -97,5 +97,5 @@ return { 'akinsho/bufferline.nvim',
 			reveal = {'close'}
 		},
 		sort_by = 'insert_after_current'
-	}
+	} },
 }
