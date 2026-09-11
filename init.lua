@@ -77,7 +77,7 @@ require('lazy').setup({
   'tpope/vim-rhubarb',
 
   -- Detect tabstop and shiftwidth automatically
-  'tpope/vim-sleuth',
+  -- 'tpope/vim-sleuth',
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -249,6 +249,8 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
+vim.opt.termguicolors = true
+
 -- [[ Basic Keymaps ]]
 
 -- Keymaps for better default experience
@@ -282,6 +284,10 @@ require('telescope').setup {
     },
   },
 }
+
+require('bufferline').setup{}
+
+require('lualine')
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')

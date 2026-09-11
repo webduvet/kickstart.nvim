@@ -1,3 +1,4 @@
+-- this highlights the word under cursor across the buffer
 return {
   'yamatsum/nvim-cursorline',
   config = function ()
