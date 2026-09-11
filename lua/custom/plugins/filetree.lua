@@ -192,7 +192,12 @@ return {
           open_in_editor = function(state)
             local original_position = state.current_position
             state.current_position = 'left'
-            local ok, err = pcall(require('neo-tree.sources.common.commands').open, state)
+            -- filesystem.commands.open (not common.commands.open) is what
+            -- actually supplies the toggle_directory callback that scans
+            -- and expands directories; calling the generic common version
+            -- directly (as an earlier version of this override did) broke
+            -- directory expansion entirely.
+            local ok, err = pcall(require('neo-tree.sources.filesystem.commands').open, state)
             state.current_position = original_position
             if not ok then
               error(err)
