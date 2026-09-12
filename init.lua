@@ -124,6 +124,17 @@ require('lazy').setup({
       signature = { enabled = true },
       sources = { default = { 'lsp', 'path', 'snippets', 'buffer' } },
       fuzzy = { implementation = 'prefer_rust_with_warning' },
+      -- cmdline completion (e.g. `:colorscheme <Tab>`) uses its own keymap
+      -- preset, separate from the one above: without this, <C-j>/<C-k>
+      -- fall through to Vim's built-ins in cmdline mode (<C-j> = <CR>,
+      -- <C-k> = digraph entry) instead of cycling suggestions
+      cmdline = {
+        keymap = {
+          preset = 'cmdline',
+          ['<C-j>'] = { 'select_next', 'fallback' },
+          ['<C-k>'] = { 'select_prev', 'fallback' },
+        },
+      },
     },
     opts_extend = { 'sources.default' },
   },
