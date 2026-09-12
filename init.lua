@@ -164,24 +164,6 @@ require('lazy').setup({
     },
   },
 
-
-  --[[ {
-    "folke/tokyonight.nvim",
-    lazy = false,
-    priority = 1000,
-    opts = {
-      style = "day"
-    },
-    style = "day",
-
-    config = function() 
-      require('tokyonight').setup {
-        style = "day",
-        light_theme = "day",
-      }
-    end,
-  }, ]]
-
   {
     -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
@@ -241,6 +223,23 @@ require('lazy').setup({
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   { import = 'custom.plugins' },
 }, {})
+
+-- retrobox is built into Neovim, no plugin needed
+vim.cmd.colorscheme 'retrobox'
+
+-- Force a highly-visible, fixed cursor color. Left unset, Neovim derives
+-- the terminal cursor color from Normal's fg, which some themes (onedark
+-- included) also reuse as TabLineSel's background -- making the cursor
+-- disappear whenever it lands on/near that highlight. Re-applied on every
+-- ColorScheme event so it survives manual `:colorscheme` switches too.
+vim.api.nvim_create_autocmd('ColorScheme', {
+  group = vim.api.nvim_create_augroup('custom-cursor-visibility', { clear = true }),
+  callback = function()
+    vim.api.nvim_set_hl(0, 'Cursor', { bg = '#e5c07b', fg = '#282c34' })
+    vim.api.nvim_set_hl(0, 'lCursor', { link = 'Cursor' })
+  end,
+})
+vim.api.nvim_exec_autocmds('ColorScheme', {})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`

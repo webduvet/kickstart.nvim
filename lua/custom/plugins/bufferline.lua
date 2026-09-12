@@ -4,7 +4,7 @@ return { 'akinsho/bufferline.nvim',
 	opts = { options = {
 		mode = "buffers", -- set to "tabs" to only show tabpages instead
 		-- style_preset = bufferline.style_preset.default, -- or bufferline.style_preset.minimal,
-		themable = false, -- allows highlight groups to be overriden i.e. sets highlights as default
+		themable = true, -- allows highlight groups to be overriden i.e. sets highlights as default
 		numbers = "both",
 		close_command = "bdelete! %d",       -- can be a string | function, | false see "Mouse actions"
 		right_mouse_command = "bdelete! %d", -- can be a string | function | false, see "Mouse actions"
