@@ -40,12 +40,28 @@ return {
   },
   { 'huijiro/blink-cmp-supermaven', cond = is 'supermaven' },
 
-  -- Minuet + Codestral -- bring-your-own-key via Mistral's low-latency
-  -- fill-in-the-middle endpoint (export CODESTRAL_API_KEY)
+  -- Minuet + Codestral -- bring-your-own-key via Mistral's fill-in-the-middle
+  -- endpoint (export CODESTRAL_API_KEY). Runs as its own ghost-text overlay
+  -- (like Copilot's classic UX) rather than a blink.cmp popup item -- separate
+  -- UI layer, so it doesn't touch blink.cmp's sources/config at all.
   {
     'milanglacier/minuet-ai.nvim',
     cond = is 'minuet',
-    opts = { provider = 'codestral' },
+    opts = {
+      provider = 'codestral',
+      virtualtext = {
+        auto_trigger_ft = { '*' }, -- ghost text on every filetype, no manual invoke needed
+        -- minuet ships with every keymap unset by default (no accept/dismiss
+        -- binding at all) despite the README's example implying otherwise
+        keymap = {
+          accept = '<A-A>', -- accept the whole suggestion
+          accept_line = '<A-a>', -- accept just the next line
+          next = '<A-]>',
+          prev = '<A-[>',
+          dismiss = '<A-e>',
+        },
+      },
+    },
   },
 
   {
@@ -64,14 +80,8 @@ return {
           supermaven = { name = 'supermaven', module = 'blink-cmp-supermaven', score_offset = 100, async = true },
         },
       },
-    } or is 'minuet' and {
-      sources = {
-        default = { 'minuet' },
-        providers = {
-          minuet = { name = 'minuet', module = 'minuet.blink', async = true, timeout_ms = 3000, score_offset = 50 },
-        },
-      },
-      completion = { trigger = { prefetch_on_insert = false } },
     } or {},
+    -- minuet runs its own virtual-text overlay when active, independent of
+    -- blink.cmp -- nothing to wire up here for it
   },
 }
