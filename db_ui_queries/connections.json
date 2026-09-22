@@ -1,1 +1,1 @@
-[{"url": "jdbc:postgres://infinite-uat-settle-db.cipazza3vsci.eu-west-1.rds.amazonaws.com:5432/settle_uat", "name": "settle_uat"}]
+[{"name": "settle_uat", "url": "ssh://uat-jumpbox:postgresql://settle_qa_user@infinite-uat-settle-db.cipazza3vsci.eu-west-1.rds.amazonaws.com:5432/settle_uat?sslmode=disable"}]
