@@ -67,6 +67,19 @@ local function toggle_or_focus_neotree_source(source_name, open_fn)
 	end
 end
 
+-- Pure toggle: closes the source's window if it exists (focused or not),
+-- otherwise opens it.
+---@param source_name string
+---@param open_fn fun() called only when the source's window doesn't exist yet
+local function toggle_neotree_source(source_name, open_fn)
+	local win = find_neotree_window(source_name)
+	if win then
+		vim.api.nvim_win_close(win, false)
+	else
+		open_fn()
+	end
+end
+
 local function open_neotree_filesystem_stacked()
 	local buffers_win = find_neotree_window 'buffers'
 	if buffers_win then
@@ -144,7 +157,7 @@ local function toggle_or_focus_neotree_buffers()
 end
 
 vim.keymap.set('n', '<leader>n', function()
-	toggle_or_focus_neotree_source('filesystem', open_neotree_filesystem_stacked)
+	toggle_neotree_source('filesystem', open_neotree_filesystem_stacked)
 end, { desc = 'Toggle file [N]eo-tree' })
 vim.keymap.set('n', '<leader>b', toggle_or_focus_neotree_buffers, { desc = 'Toggle/focus [B]uffer picker (Neo-tree)' })
 -- Same as <leader>b, just also reachable through the Buffer which-key group
