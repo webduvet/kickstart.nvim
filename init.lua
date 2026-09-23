@@ -242,7 +242,9 @@ require('lazy').setup({
 }, {})
 
 -- retrobox is built into Neovim, no plugin needed
-vim.cmd.colorscheme 'retrobox'
+vim.cmd.colorscheme 'wildcharm'
+-- vim.cmd.colorscheme 'pablo'
+-- vim.cmd.colorscheme 'elford'
 
 -- Force a highly-visible, fixed cursor color. Left unset, Neovim derives
 -- the terminal cursor color from Normal's fg, which some themes (onedark
