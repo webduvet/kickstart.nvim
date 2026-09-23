@@ -44,6 +44,23 @@ vim.g.maplocalleader = ','
 vim.keymap.set('n', 'J', '<c-d>')
 vim.keymap.set('n', 'K', '<c-u>')
 
+-- Zoom the current window to fill the tab, then restore every window back to
+-- its exact previous size on a second press - same idea as tmux's zoom or
+-- vim-maximizer, without needing a plugin. `winrestcmd()` captures the exact
+-- per-window sizes (not just `<C-w>=` equalize) so odd layouts - e.g. DBUI's
+-- tree/query/result split - come back exactly as they were.
+local pre_zoom_layout = nil
+local function toggle_zoom()
+  if pre_zoom_layout then
+    vim.cmd(pre_zoom_layout)
+    pre_zoom_layout = nil
+  else
+    pre_zoom_layout = vim.fn.winrestcmd()
+    vim.cmd 'wincmd _ | wincmd |'
+  end
+end
+vim.keymap.set('n', '<leader>z', toggle_zoom, { desc = 'Toggle window [Z]oom' })
+
 -- <leader>n/<leader>b (Neo-tree tree/buffer-picker), <leader>B/<leader>g/
 -- <leader>f/<leader>l which-key groups: all set up further down, once
 -- telescope/gitsigns/which-key are configured.
