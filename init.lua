@@ -242,7 +242,8 @@ require('lazy').setup({
 }, {})
 
 -- retrobox is built into Neovim, no plugin needed
-vim.cmd.colorscheme 'wildcharm'
+vim.cmd.colorscheme 'darkblue'
+-- vim.cmd.colorscheme 'wildcharm'
 -- vim.cmd.colorscheme 'pablo'
 -- vim.cmd.colorscheme 'elford'
 
