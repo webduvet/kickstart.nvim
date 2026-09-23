@@ -179,6 +179,12 @@ return {
 			-- was previously nested under `default_component_configs.filesystem`,
 			-- which isn't a real config path, so it silently did nothing.
 			filesystem = {
+				-- Keep the tree's root independent of Neovim's actual :cwd, so
+				-- following a file outside the current root (e.g. a DBUI result
+				-- buffer, or any file elsewhere) just moves the tree there
+				-- instead of prompting to change :cwd. `<bs>` (navigate_up) and
+				-- `.` (set_root) still let you freely browse up/down the tree.
+				bind_to_cwd = false,
 				follow_current_file = { enabled = true },
 				filtered_items = {
 					-- Show everything directly in the tree instead of collapsing
