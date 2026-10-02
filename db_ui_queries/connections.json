@@ -1,7 +1,7 @@
 [
   {
     "name": "lightyear_uat",
-    "url": "ssh://uat-jumpbox:postgresql://settle_qa_user@infinite-uat-lightyear-db.cipazza3vsci.eu-west-1.rds.amazonaws.com:5432/infinite_uat?sslmode=require"
+    "url": "ssh://uat-jumpbox:postgresql://lightyear_qa_user@infinite-uat-lightyear-db.cipazza3vsci.eu-west-1.rds.amazonaws.com:5432/infinite_uat?sslmode=require"
   },
   {
     "name": "settle_uat",
