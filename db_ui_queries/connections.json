@@ -5,7 +5,7 @@
   },
   {
     "name": "settle_dev",
-    "url": "ssh://dev-jumpbox:postgresql://settle_dev_user@infinite-uat-settle-db.cipazza3vsci.eu-west-1.rds.amazonaws.com:5432/settle_uat?sslmode=require"
+    "url": "ssh://dev-jumpbox:postgresql://settle_dev_user@infinite-dev-settle-db.csksj0tpjazk.eu-west-1.rds.amazonaws.com:5432/settle_development?sslmode=require"
   },
   {
     "name": "local_platform",

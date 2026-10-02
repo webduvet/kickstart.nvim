@@ -1,0 +1,1 @@
+select id,bc_payment_id,currency,status,b4b_payment_id,submitted_at from "settlement_submissions" order by submitted_at desc LIMIT 200
